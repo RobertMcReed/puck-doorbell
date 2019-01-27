@@ -1,0 +1,45 @@
+{
+  "name": "puck-js-hue",
+  "version": "1.0.0",
+  "description": "Control your Hue lights from a Puck.js",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js",
+    "setup": "node setup.js",
+    "update": "node utility/prepPuck.js && node utility/flashPuck.js",
+    "prep": "node utility/prepPuck.js",
+    "flash": "node utility/flashPuck.js",
+    "register": "node utility/registerDevice.js",
+    "discoverPuck": "node utility/discoverPucks.js",
+    "discoverOnePuck": "node utility/discoverPucks.js --first",
+    "discoverLights": "node utility/discoverLights.js",
+    "listen": "node utility/discoverAllAdverts.js"
+  },
+  "keywords": [
+    "Hue",
+    "puck.js",
+    "Espruino",
+    "BLE",
+    "Raspberry Pi",
+    "Phillips"
+  ],
+  "author": "Robert Reed",
+  "license": "MIT",
+  "dependencies": {
+    "auto-bind": "^2.0.0",
+    "dotenv": "^6.2.0",
+    "espruino": "^0.1.23",
+    "fs-extra": "^7.0.1",
+    "noble": "^1.9.1",
+    "node-fetch": "^2.3.0",
+    "node-hue-api": "^2.4.4",
+    "opencv4nodejs": "^4.14.0",
+    "pushover-notifications": "^1.2.0",
+    "shelljs": "^0.8.3"
+  },
+  "devDependencies": {
+    "eslint": "^5.12.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.14.0"
+  }
+}
