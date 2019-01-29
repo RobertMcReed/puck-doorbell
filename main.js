@@ -1,17 +1,19 @@
 require('dotenv').load();
 const Puck = require('./lib/puck');
+const Webcam = require('./lib/opencv');
 const Pusher = require('./lib/pushover');
 
 const { log } = require('./lib/util');
 const { initHueProm } = require('./lib/hue');
 
-const state = {
-  last: null,
-};
-
 const main = async () => {
-  const { PUCKS, HUE_USERNAME, TIMEOUT } = process.env;
   let run = true;
+  const {
+    PUCKS,
+    HUE_USERNAME,
+    PUSH_DELAY = 30,
+    FLASH_DELAY = 15,
+  } = process.env;
 
   if (!PUCKS) {
     log.err('You must have a comma separated list of PUCKS in a .env file at the root of the project.\n');
@@ -26,23 +28,48 @@ const main = async () => {
   }
 
   if (run) {
+    let lastClick = null;
+    let lastDetection = Date.now();
+
+    const pushOk = () => (Date.now() - lastDetection > PUSH_DELAY * 1000);
+    const clickOk = () => (!lastClick || Date.now() - lastClick > FLASH_DELAY * 1000);
+
+    const sendPicture = (image) => {
+      log.info('Sending picture...');
+      const buff = Buffer.isBuffer(image) ? image : Webcam.frameToBuff(image);
+      Pusher.send(buff);
+    };
+
+    const handleFrame = (frame, numDetections) => {
+      if (numDetections && pushOk()) {
+        lastDetection = Date.now();
+        sendPicture(frame);
+      }
+    };
+
     const hue = await initHueProm();
+    const cam = new Webcam({ handleFrame });
 
     const handleClick = (lastAdvert, currentAdvert) => {
       if (!lastAdvert) return;
 
-      const { last } = state;
-      if (!last || Date.now() - last > (TIMEOUT || 20) * 1000) {
-        state.last = Date.now();
+      if (clickOk()) {
+        log.info('Ding Dong! Someone is at the door.');
+        lastClick = Date.now();
         hue.handlePuckClick(lastAdvert, currentAdvert);
-        Pusher.send(lastAdvert);
-        console.log('Ding Dong!');
+
+        if (pushOk()) {
+          const buff = cam.getFrameBuff();
+          sendPicture(buff);
+        }
       } else {
-        console.log('*too soon*');
+        log.err('Stop clicking so quickly!');
       }
     };
 
-    return new Puck({ handleClick });
+    cam.start();
+
+    return (new Puck({ handleClick }));
   }
 };
 
