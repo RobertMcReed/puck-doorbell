@@ -10,6 +10,7 @@ const main = async () => {
   let run = true;
   const {
     PUCKS,
+    DEBUG,
     HUE_USERNAME,
     PUSH_DELAY = 30,
     FLASH_DELAY = 15,
@@ -36,8 +37,11 @@ const main = async () => {
 
     const sendPicture = (image) => {
       log.info('Sending picture...');
-      const buff = Buffer.isBuffer(image) ? image : Webcam.frameToBuff(image);
-      Pusher.send(buff);
+
+      if (!DEBUG) {
+        const buff = Buffer.isBuffer(image) ? image : Webcam.frameToBuff(image);
+        Pusher.send(buff);
+      }
     };
 
     const handleFrame = (frame, numDetections) => {
